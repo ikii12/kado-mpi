@@ -200,6 +200,59 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* --- 6. Modal Pop-up Kustom Anti-Block --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-box {
+            background-color: #fffaf0;
+            border-radius: 20px;
+            border: 4px solid #ff69b4;
+            padding: 30px 20px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .modal-box p {
+            color: #ff1493;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        #modal-input {
+            width: 80%;
+            padding: 10px;
+            border: 2px solid #ffb6c1;
+            border-radius: 10px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 15px;
+            margin-bottom: 20px;
+            outline: none;
+            text-align: center;
+        }
+
+        #modal-input:focus {
+            border-color: #ff1493;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -239,13 +292,29 @@
         <div class="peringatan-klik">Klik layarnya lagi dong! 👇</div>
     </div>
 
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-box">
+            <p id="modal-text">Pesan di sini</p>
+            <input type="text" id="modal-input" placeholder="Ketik di sini..." style="display: none;" autocomplete="off">
+            <br>
+            <button class="btn-buka" id="modal-btn" onclick="nextModal()" style="margin-top: 0;">Lanjut</button>
+        </div>
+    </div>
+
     <script>
         // Fungsi Alur Cerita
         function bukaKado() {
-            // Memutar musik saat kado pertama diklik
+            // Memutar musik dengan pelindung error (try-catch promise)
             const musik = document.getElementById('lagu-bg');
-            musik.play();
+            let playPromise = musik.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Audio diblokir atau telat loading, tapi animasi tetap jalan.");
+                });
+            }
 
+            // Animasi tetap berjalan walau audio gagal
             document.getElementById('kado-container').style.display = 'none';
             document.getElementById('sampul-container').style.display = 'block';
         }
@@ -259,25 +328,59 @@
             }, 50);
         }
 
-        function bukaKadoSpesial() {
-            // Tambahan Elemen Petualangan (Rintangan Pop-up)
-            alert("Eits, tunggu dulu... 🤫");
-            alert("Ada rintangan terakhir nih sebelum buka kado spesial!");
-            
-            // Pertanyaan teka-teki
-            let jawaban = prompt("Coba jawab jujur, siapa cowok yang paling sayang sama kamu? 😆 Klik OKE jika tidak ada");
-            
-            // Reaksi jahil apapun jawabannya
-            if (jawaban) {
-                alert("Jawaban kamu '" + jawaban + "'? Hmmm...");
-                alert("Yaudah deh, yang penting ini kado spesial buat cewe nya iki yang paling cantik! 🥰");
-            } else {
-                alert("Kok gak dijawab sih? Yaudah deh, ini spesial buat cewe nya iki yang paling cantik! 🥰");
-            }
+        // --- Sistem Modal Kustom Pengganti Alert/Prompt ---
+        let modalStep = 0;
+        let jawaban = "";
 
-            // Lanjut ke animasi setelah pop-up selesai
+        function bukaKadoSpesial() {
             document.getElementById('buku-container').style.display = 'none';
-            document.getElementById('running-container').style.display = 'flex';
+            tampilkanModal("Eits, tunggu dulu... 🤫", false);
+            modalStep = 1;
+        }
+
+        function tampilkanModal(teks, showInput) {
+            document.getElementById('custom-modal').style.display = 'flex';
+            document.getElementById('modal-text').innerText = teks;
+            
+            const inputField = document.getElementById('modal-input');
+            if (showInput) {
+                inputField.style.display = 'inline-block';
+                inputField.value = "";
+                inputField.focus();
+            } else {
+                inputField.style.display = 'none';
+            }
+        }
+
+        function nextModal() {
+            const inputField = document.getElementById('modal-input');
+            
+            if (modalStep === 1) {
+                tampilkanModal("Ada rintangan terakhir nih sebelum buka kado spesial!", false);
+                modalStep = 2;
+            } else if (modalStep === 2) {
+                tampilkanModal("Coba jawab jujur, siapa cowok yang paling sayang sama kamu? 😆 Klik OKE jika tidak ada", true);
+                document.getElementById('modal-btn').innerText = "OKE"; // Ubah tombol sementara
+                modalStep = 3;
+            } else if (modalStep === 3) {
+                document.getElementById('modal-btn').innerText = "Lanjut"; // Kembalikan teks tombol
+                jawaban = inputField.value.trim();
+                
+                if (jawaban) {
+                    tampilkanModal("Jawaban kamu '" + jawaban + "'? Hmmm...", false);
+                    modalStep = 4;
+                } else {
+                    tampilkanModal("Kok gak dijawab sih? Yaudah deh, ini spesial buat cewe nya iki yang paling cantik! 🥰", false);
+                    modalStep = 5;
+                }
+            } else if (modalStep === 4) {
+                tampilkanModal("Yaudah deh, yang penting ini kado spesial buat cewe nya iki yang paling cantik! 🥰", false);
+                modalStep = 5;
+            } else if (modalStep === 5) {
+                // Selesai modal, lanjut ke running text
+                document.getElementById('custom-modal').style.display = 'none';
+                document.getElementById('running-container').style.display = 'flex';
+            }
         }
 
         // Fungsi Animasi Bunga
