@@ -290,23 +290,23 @@
 
             const ikonBunga = ['🌸', '🌺', '🌷', '🌻', '💐'];
             
-            for (let i = 0; i < 60; i++) {
+            // Mengganti perulangan terbatas dengan setInterval agar muncul terus menerus
+            setInterval(() => {
+                const bunga = document.createElement('div');
+                bunga.innerHTML = ikonBunga[Math.floor(Math.random() * ikonBunga.length)];
+                bunga.classList.add('bunga');
+                
+                bunga.style.left = Math.random() * 100 + 'vw';
+                bunga.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                bunga.style.fontSize = (Math.random() * 25 + 20) + 'px';
+                
+                document.body.appendChild(bunga);
+                
+                // Menghapus bunga setelah 5 detik agar memori HP tidak penuh
                 setTimeout(() => {
-                    const bunga = document.createElement('div');
-                    bunga.innerHTML = ikonBunga[Math.floor(Math.random() * ikonBunga.length)];
-                    bunga.classList.add('bunga');
-                    
-                    bunga.style.left = Math.random() * 100 + 'vw';
-                    bunga.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                    bunga.style.fontSize = (Math.random() * 25 + 20) + 'px';
-                    
-                    document.body.appendChild(bunga);
-                    
-                    setTimeout(() => {
-                        bunga.remove();
-                    }, 5000);
-                }, i * 100);
-            }
+                    bunga.remove();
+                }, 5000);
+            }, 150); // Bunga baru akan diciptakan setiap 150 milidetik
         }
     </script>
 </body>
